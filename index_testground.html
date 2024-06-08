@@ -136,11 +136,10 @@
 </div>
 
 <script>
-  // Global variable to hold the QR code scanner instance
   let qrCodeScanner;
 
-  // Immediately display the user list on load
   window.onload = function() {
+    initializeDefaultEvent();
     displayUserList();
   }
 
@@ -162,18 +161,36 @@
     }
   }
 
+  function initializeDefaultEvent() {
+    const userList = JSON.parse(localStorage.getItem('userList')) || [];
+    const defaultEventName = "Introduction and for feedback";
+    const defaultLinkedInUrl = "https://www.linkedin.com/in/shubhamgupta08/";
+
+    const defaultEventExists = userList.some(user => 
+      user.eventName === defaultEventName && user.linkedInUrl === defaultLinkedInUrl
+    );
+
+    if (!defaultEventExists) {
+      userList.push({
+        eventName: defaultEventName,
+        linkedInUrl: defaultLinkedInUrl,
+        timestamp: new Date().toISOString()
+      });
+      localStorage.setItem('userList', JSON.stringify(userList));
+    }
+  }
+
   function startQrScanner() {
     hideAllSections();
     document.getElementById('qr-scanner').classList.remove('hidden');
 
-    // Initialize the QR code scanner if not already initialized
     if (!qrCodeScanner) {
       qrCodeScanner = new Html5Qrcode("qr-reader");
     }
 
     qrCodeScanner.start(
-      { facingMode: "environment" }, // Use the back camera
-      { fps: 10, qrbox: 250 }, // Config options like fps and size of the scan box
+      { facingMode: "environment" },
+      { fps: 10, qrbox: 250 },
       qrCodeSuccessCallback
     ).catch(err => {
       console.error(`Unable to start the QR code scanner. Reason: ${err}`);
@@ -201,7 +218,7 @@
     const eventName = localStorage.getItem('eventName');
     const scannedData = localStorage.getItem('scannedData');
     const userList = JSON.parse(localStorage.getItem('userList')) || [];
-    userList.push({ eventName, linkedInUrl: scannedData });
+    userList.push({ eventName, linkedInUrl: scannedData, timestamp: new Date().toISOString() });
     localStorage.setItem('userList', JSON.stringify(userList));
     hideAllSections();
     displayUserList();
@@ -225,13 +242,20 @@
       events[user.eventName].push(user);
     });
 
-    for (const eventName in events) {
+    // Sort events chronologically by timestamp
+    const sortedEventNames = Object.keys(events).sort((a, b) => {
+      const latestA = Math.max(...events[a].map(user => new Date(user.timestamp).getTime()));
+      const latestB = Math.max(...events[b].map(user => new Date(user.timestamp).getTime()));
+      return latestB - latestA;
+    });
+
+    sortedEventNames.forEach(eventName => {
       const eventDiv = document.createElement('div');
       eventDiv.classList.add('event-section');
 
       const eventHeader = document.createElement('div');
       eventHeader.classList.add('event-header');
-      eventHeader.innerHTML = `<h3>${eventName} (${events[eventName].length} connects)</h3><span class="icon" onclick="toggleCollapse(this)">&#9654;</span>`;
+      eventHeader.innerHTML = `<h3>${eventName} (Connections: ${events[eventName].length})</h3><span class="icon" onclick="toggleCollapse(this)">&#9654;</span>`;
       eventDiv.appendChild(eventHeader);
 
       const userListUl = document.createElement('ul');
@@ -249,12 +273,11 @@
       eventDiv.appendChild(userListUl);
       eventDiv.appendChild(addConnectButton);
       eventLists.appendChild(eventDiv);
-    }
+    });
 
-    // Ensure the user list is visible
     document.getElementById('user-list').classList.remove('hidden');
   }
-
+  
   function addNewConnect(eventName) {
     localStorage.setItem('eventName', eventName);
     hideAllSections();
@@ -282,13 +305,10 @@
   function clearData() {
     const userConfirmed = confirm("Are you sure you want to clear all data?");
     if (userConfirmed) {
-      // Clear local storage
       localStorage.clear();
-      // Refresh the event list display
       displayUserList();
-      // Optionally, you can provide feedback to the user
       alert('All data has been cleared.');
-  }
+    }
   }
 </script>
 
