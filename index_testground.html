@@ -1,8 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="apple-touch-startup-image" href="splashscreens/launch-640x1136.png" media="(device-width: 320px) and (device-height: 568px)">
+  <link rel="apple-touch-startup-image" href="splashscreens/launch-750x1334.png" media="(device-width: 375px) and (device-height: 667px)">
+  <link rel="apple-touch-startup-image" href="splashscreens/launch-1125x2436.png" media="(device-width: 375px) and (device-height: 812px)">
+  <link rel="apple-touch-startup-image" href="splashscreens/launch-828x1792.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)">
+  <link rel="apple-touch-startup-image" href="splashscreens/launch-1242x2688.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)">
+  <link rel="apple-touch-startup-image" href="splashscreens/launch-1536x2048.png" media="(min-device-width: 768px) and (max-device-width: 1024px) and (orientation: portrait)">
+  <link rel="apple-touch-startup-image" href="splashscreens/launch-1668x2224.png" media="(min-device-width: 834px) and (max-device-width: 1112px) and (orientation: portrait)">
+  <link rel="apple-touch-startup-image" href="splashscreens/launch-1668x2388.png" media="(min-device-width: 834px) and (max-device-width: 1194px) and (orientation: portrait)">
+  <link rel="apple-touch-startup-image" href="splashscreens/launch-2048x2732.png" media="(min-device-width: 1024px) and (max-device-width: 1366px) and (orientation: portrait)">
+  <link rel="apple-touch-icon" href="icons/icon-180x180.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="QR Tracker">
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="manifest" href="manifest.json">
   <title>LinkedIn QR Tracker</title>
   <style>
     body {
@@ -42,6 +56,9 @@
       padding: 10px;
       border-radius: 5px;
     }
+    .event-section li a {
+      font-size: 14px;
+    }
     .event-section {
       margin-bottom: 20px;
     }
@@ -50,6 +67,13 @@
       justify-content: space-between;
       align-items: center;
       cursor: pointer;
+    }
+    .icon {
+      font-size: 18px;
+      transition: transform 0.3s ease;
+    }
+    .icon.collapsed {
+      transform: rotate(0deg);
     }
     .collapsible {
       display: none;
@@ -62,6 +86,14 @@
     #qr-reader {
       width: 100%;
       margin: 20px 0;
+    }
+    .clear-button {
+      background-color: #f4f4f4;
+      color: #333;
+      border: 1px solid #ccc;
+    }
+    .clear-button:hover {
+      background-color: #e4e4e4;
     }
   </style>
   <!-- Include html5-qrcode library -->
@@ -84,11 +116,12 @@
     <button onclick="stopScan()">Stop Scan</button>
   </div>
 
-  <!-- Add User Page -->
-  <div id="add-user" class="hidden">
-    <h2>Add User Name</h2>
-    <input type="text" id="user-name" placeholder="User Name">
+  <!-- Confirm User Page -->
+  <div id="confirm-user" class="hidden">
+    <h2>Confirm User</h2>
+    <p id="user-url"></p>
     <button onclick="confirmUser()">Confirm</button>
+    <button onclick="cancelUser()">Cancel</button>
   </div>
 
   <!-- User List Page -->
@@ -96,7 +129,7 @@
     <h2>Event Attendees</h2>
     <div class="button-group">
       <button onclick="addNewEvent()">Add New Event</button>
-      <button onclick="clearData()">Clear Data</button>
+      <button class = "clear-button" onclick="clearData()">Clear Data</button>
     </div>
     <div id="event-lists"></div>
   </div>
@@ -114,7 +147,7 @@
   function hideAllSections() {
     document.getElementById('event-name').classList.add('hidden');
     document.getElementById('qr-scanner').classList.add('hidden');
-    document.getElementById('add-user').classList.add('hidden');
+    document.getElementById('confirm-user').classList.add('hidden');
     document.getElementById('user-list').classList.add('hidden');
   }
 
@@ -150,46 +183,33 @@
   function qrCodeSuccessCallback(decodedText, decodedResult) {
     console.log(`Code matched = ${decodedText}`, decodedResult);
     localStorage.setItem('scannedData', decodedText);
+    document.getElementById('user-url').innerText = `LinkedIn URL: ${decodedText}`;
     stopScan();
-    document.getElementById('add-user').classList.remove('hidden');
+    document.getElementById('confirm-user').classList.remove('hidden');
   }
 
   function stopScan() {
     if (qrCodeScanner) {
-      qrCodeScanner.stop().catch(err => console.error('Unable to stop scanner', err));
+      qrCodeScanner.stop().then(() => {
+        document.getElementById('qr-scanner').classList.add('hidden');
+        document.getElementById('user-list').classList.remove('hidden');
+      }).catch(err => console.error('Unable to stop scanner', err));
     }
-    document.getElementById('qr-scanner').classList.add('hidden');
+  }
+
+  function confirmUser() {
+    const eventName = localStorage.getItem('eventName');
+    const scannedData = localStorage.getItem('scannedData');
+    const userList = JSON.parse(localStorage.getItem('userList')) || [];
+    userList.push({ eventName, linkedInUrl: scannedData });
+    localStorage.setItem('userList', JSON.stringify(userList));
     hideAllSections();
     displayUserList();
   }
 
-//   function stopScan() {
-//   // Check if the QR scanner is running
-//   if (qrCodeScanner && qrCodeScanner.isScanning) {
-//     qrCodeScanner.stop().then(() => {
-//       // If the scanner was stopped, transition to the next page
-//       document.getElementById('qr-scanner').classList.add('hidden');
-//       document.getElementById('add-user').classList.remove('hidden');
-//     }).catch(err => console.error('Unable to stop scanner', err));
-//   } else {
-//     // If the scanner was not running, just hide the scanner section
-//     document.getElementById('qr-scanner').classList.add('hidden');
-//   }
-// }
-
-  function confirmUser() {
-    const userName = document.getElementById('user-name').value;
-    if (userName) {
-      const eventName = localStorage.getItem('eventName');
-      const scannedData = localStorage.getItem('scannedData');
-      const userList = JSON.parse(localStorage.getItem('userList')) || [];
-      userList.push({ name: userName, eventName, linkedInUrl: scannedData });
-      localStorage.setItem('userList', JSON.stringify(userList));
-      hideAllSections();
-      displayUserList();
-    } else {
-      alert('Please enter user name');
-    }
+  function cancelUser() {
+    hideAllSections();
+    displayUserList();
   }
 
   function displayUserList() {
@@ -211,14 +231,14 @@
 
       const eventHeader = document.createElement('div');
       eventHeader.classList.add('event-header');
-      eventHeader.innerHTML = `<h3>${eventName} (${events[eventName].length} connects)</h3><button onclick="toggleCollapse(this)">Toggle</button>`;
+      eventHeader.innerHTML = `<h3>${eventName} (${events[eventName].length} connects)</h3><span class="icon" onclick="toggleCollapse(this)">&#9654;</span>`;
       eventDiv.appendChild(eventHeader);
 
       const userListUl = document.createElement('ul');
       userListUl.classList.add('collapsible');
       events[eventName].forEach(user => {
         const listItem = document.createElement('li');
-        listItem.innerHTML = `${user.name} - <a href="${user.linkedInUrl}" target="_blank">${user.linkedInUrl}</a>`;
+        listItem.innerHTML = `<a href="${user.linkedInUrl}" target="_blank">${user.linkedInUrl}</a>`;
         userListUl.appendChild(listItem);
       });
 
@@ -246,22 +266,29 @@
     document.getElementById('event-name').classList.remove('hidden');
   }
 
-  function toggleCollapse(button) {
-    const userListUl = button.parentElement.nextElementSibling;
+  function toggleCollapse(icon) {
+    const userListUl = icon.parentElement.nextElementSibling;
     if (userListUl.classList.contains('collapsible')) {
       userListUl.classList.remove('collapsible');
+      icon.innerHTML = '&#9660;';
+      icon.classList.add('collapsed');
     } else {
       userListUl.classList.add('collapsible');
+      icon.innerHTML = '&#9654;';
+      icon.classList.remove('collapsed');
     }
   }
 
   function clearData() {
-    // Clear local storage
-    localStorage.clear();
-    // Refresh the event list display
-    displayUserList();
-    // Optionally, you can provide feedback to the user
-    alert('All data has been cleared.');
+    const userConfirmed = confirm("Are you sure you want to clear all data?");
+    if (userConfirmed) {
+      // Clear local storage
+      localStorage.clear();
+      // Refresh the event list display
+      displayUserList();
+      // Optionally, you can provide feedback to the user
+      alert('All data has been cleared.');
+  }
   }
 </script>
 
