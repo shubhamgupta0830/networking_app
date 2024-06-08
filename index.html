@@ -140,7 +140,26 @@
 
   window.onload = function() {
     initializeDefaultEvent();
+    syncLocalStorage();
     displayUserList();
+  }
+
+  function syncLocalStorage() {
+    const pwaData = localStorage.getItem('pwaData');
+    if (pwaData) {
+      const browserData = JSON.parse(pwaData);
+      for (const key in browserData) {
+        localStorage.setItem(key, browserData[key]);
+      }
+    } else {
+      const browserData = {};
+      for (const key in localStorage) {
+        if (localStorage.hasOwnProperty(key)) {
+          browserData[key] = localStorage.getItem(key);
+        }
+      }
+      localStorage.setItem('pwaData', JSON.stringify(browserData));
+    }
   }
 
   function hideAllSections() {
