@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LinkedIn QR Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    .hidden {
+      display: none;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    input {
+      display: block;
+      margin-bottom: 10px;
+      padding: 10px;
+      width: 100%;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #0073b1;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #005582;
+    }
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    li {
+      background-color: #f4f4f4;
+      margin: 5px 0;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    .event-section {
+      margin-bottom: 20px;
+    }
+    .event-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+    .collapsible {
+      display: none;
+    }
+    .button-group {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    #qr-reader {
+      width: 100%;
+      margin: 20px 0;
+    }
+  </style>
+  <!-- Include html5-qrcode library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script> 
+</head>
+<body>
+
+<div class="container">
+  <!-- Event Name Page -->
+  <div id="event-name" class="hidden">
+    <h2>Enter Event Name</h2>
+    <input type="text" id="event" placeholder="Event Name">
+    <button onclick="confirmEvent()">Confirm</button>
+  </div>
+
+  <!-- QR Scanner Page -->
+  <div id="qr-scanner" class="hidden">
+    <h2>Scan LinkedIn QR Code</h2>
+    <div id="qr-reader"></div>
+    <button onclick="startQrScanner()">Start Scan</button>
+    <button onclick="stopScan()">Stop Scan</button>
+  </div>
+
+  <!-- Add User Page -->
+  <div id="add-user" class="hidden">
+    <h2>Add User Name</h2>
+    <input type="text" id="user-name" placeholder="User Name">
+    <button onclick="confirmUser()">Confirm</button>
+  </div>
+
+  <!-- User List Page -->
+  <div id="user-list">
+    <h2>Event Attendees</h2>
+    <div class="button-group">
+      <button onclick="addNewEvent()">Add New Event</button>
+      <button onclick="clearData()">Clear Data</button>
+    </div>
+    <div id="event-lists"></div>
+  </div>
+</div>
+
+<script>
+  // Global variable to hold the QR code scanner instance
+  let qrCodeScanner;
+
+  // Immediately display the user list on load
+  window.onload = function() {
+    displayUserList();
+  }
+
+  function signIn() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    if (email && password) {
+      document.getElementById('signup-signin').classList.add('hidden');
+      document.getElementById('event-name').classList.remove('hidden');
+    } else {
+      alert('Please enter email and password');
+    }
+  }
+
+  function confirmEvent() {
+    const eventName = document.getElementById('event').value;
+    if (eventName) {
+      localStorage.setItem('eventName', eventName);
+      document.getElementById('event-name').classList.add('hidden');
+      document.getElementById('qr-scanner').classList.remove('hidden');
+      startQrScanner();
+    } else {
+      alert('Please enter event name');
+    }
+  }
+
+  function startQrScanner() {
+    qrCodeScanner = new Html5Qrcode("qr-reader");
+    qrCodeScanner.start(
+      { facingMode: "environment" }, // Use the back camera
+      { fps: 10, qrbox: 250 }, // Config options like fps and size of the scan box
+      qrCodeSuccessCallback
+    ).catch(err => {
+      console.error(`Unable to start the QR code scanner. Reason: ${err}`);
+    });
+  }
+
+  function qrCodeSuccessCallback(decodedText, decodedResult) {
+    console.log(`Code matched = ${decodedText}`, decodedResult);
+    localStorage.setItem('scannedData', decodedText);
+    document.getElementById('qr-scanner').classList.add('hidden');
+    document.getElementById('add-user').classList.remove('hidden');
+    qrCodeScanner.stop().catch(err => console.error('Unable to stop scanner', err));
+  }
+
+  function stopScan() {
+    if (qrCodeScanner) {
+      qrCodeScanner.stop().then(() => {
+        document.getElementById('qr-scanner').classList.add('hidden');
+        document.getElementById('user-list').classList.remove('hidden');
+      }).catch(err => console.error('Unable to stop scanner', err));
+    }
+  }
+
+  function confirmUser() {
+    const userName = document.getElementById('user-name').value;
+    if (userName) {
+      const eventName = localStorage.getItem('eventName');
+      const scannedData = localStorage.getItem('scannedData');
+      const userList = JSON.parse(localStorage.getItem('userList')) || [];
+      userList.push({ name: userName, eventName, linkedInUrl: scannedData });
+      localStorage.setItem('userList', JSON.stringify(userList));
+      document.getElementById('add-user').classList.add('hidden');
+      displayUserList();
+    } else {
+      alert('Please enter user name');
+    }
+  }
+
+  function displayUserList() {
+    const userList = JSON.parse(localStorage.getItem('userList')) || [];
+    const eventLists = document.getElementById('event-lists');
+    eventLists.innerHTML = '';
+    const events = {};
+
+    userList.forEach(user => {
+      if (!events[user.eventName]) {
+        events[user.eventName] = [];
+      }
+      events[user.eventName].push(user);
+    });
+
+    for (const eventName in events) {
+      const eventDiv = document.createElement('div');
+      eventDiv.classList.add('event-section');
+
+      const eventHeader = document.createElement('div');
+      eventHeader.classList.add('event-header');
+      eventHeader.innerHTML = `<h3>${eventName} (${events[eventName].length} connects)</h3><button onclick="toggleCollapse(this)">Toggle</button>`;
+      eventDiv.appendChild(eventHeader);
+
+      const userListUl = document.createElement('ul');
+      userListUl.classList.add('collapsible');
+      events[eventName].forEach(user => {
+        const listItem = document.createElement('li');
+        listItem.innerHTML = `${user.name} - <a href="${user.linkedInUrl}" target="_blank">${user.linkedInUrl}</a>`;
+        userListUl.appendChild(listItem);
+      });
+
+      const addConnectButton = document.createElement('button');
+      addConnectButton.textContent = 'Add New Connect';
+      addConnectButton.onclick = () => addNewConnect(eventName);
+
+      eventDiv.appendChild(userListUl);
+      eventDiv.appendChild(addConnectButton);
+      eventLists.appendChild(eventDiv);
+    }
+
+    // Ensure the user list is visible
+    document.getElementById('user-list').classList.remove('hidden');
+  }
+
+  function addNewConnect(eventName) {
+    localStorage.setItem('eventName', eventName);
+    document.getElementById('user-list').classList.add('hidden');
+    document.getElementById('qr-scanner').classList.remove('hidden');
+    startQrScanner();
+  }
+
+  function addNewEvent() {
+    document.getElementById('user-list').classList.add('hidden');
+    document.getElementById('event-name').classList.remove('hidden');
+  }
+
+  function toggleCollapse(button) {
+    const userListUl = button.parentElement.nextElementSibling;
+    if (userListUl.classList.contains('collapsible')) {
+      userListUl.classList.remove('collapsible');
+    } else {
+      userListUl.classList.add('collapsible');
+    }
+  }
+
+  function clearData() {
+    // Clear local storage
+    localStorage.clear();
+    // Refresh the event list display
+    displayUserList();
+    // Optionally, you can provide feedback to the user
+    alert('All data has been cleared.');
+  }
+</script>
+
+</body>
+</html>
