@@ -95,6 +95,28 @@
     .clear-button:hover {
       background-color: #e4e4e4;
     }
+
+    .header span {
+      font-size: 15px;
+      font-weight: bold;
+    }
+    h3 {
+      font-size: 15px;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .header img {
+      width: 30px;
+      height: 30px;
+      margin-right: 10px;
+    }
+    .header span {
+      font-size: 14px;
+      font-weight: bold;
+    }
   </style>
   <!-- Include html5-qrcode library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script> 
@@ -102,11 +124,19 @@
 <body>
 
 <div class="container">
+  <!-- Add Header -->
+  <div class="header">
+    <img src="icons/icon-152x152.png" alt="App Icon" onclick="iconClick()">
+    <span>LnkdIn QR Tracker</span>
+  </div>
+
+<div class="container">
   <!-- Event Name Page -->
   <div id="event-name" class="hidden">
     <h2>Enter Event Name</h2>
     <input type="text" id="event" placeholder="Event Name">
     <button onclick="confirmEvent()">Confirm</button>
+    <button onclick="cancelEvent()">Cancel</button>
   </div>
 
   <!-- QR Scanner Page -->
@@ -144,6 +174,12 @@
     displayUserList();
   }
 
+
+  function iconClick() {
+    hideAllSections();
+    displayUserList();
+  }
+
   function syncLocalStorage() {
     const pwaData = localStorage.getItem('pwaData');
     if (pwaData) {
@@ -178,6 +214,11 @@
     } else {
       alert('Please enter event name');
     }
+  }
+
+  function cancelEvent() {
+    hideAllSections();
+    displayUserList();
   }
 
   function initializeDefaultEvent() {
