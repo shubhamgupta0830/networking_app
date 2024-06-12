@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="apple-touch-startup-image" href="splashscreens/splashscreen-640x1136.png" media="(device-width: 320px) and (device-height: 568px)">
-  <link rel="apple-touch-startup-image" href="splashscreens/splashscreen-750x1334.png" media="(device-width: 375px) and (device-height: 667px)">
-  <link rel="apple-touch-startup-image" href="splashscreens/splashscreen-1125x2436.png" media="(device-width: 375px) and (device-height: 812px)">
-  <link rel="apple-touch-startup-image" href="splashscreens/splashscreen-828x1792.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)">
-  <link rel="apple-touch-startup-image" href="splashscreens/splashscreen-1242x2688.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)">
-  <link rel="apple-touch-startup-image" href="splashscreens/splashscreen-1536x2048.png" media="(min-device-width: 768px) and (max-device-width: 1024px) and (orientation: portrait)">
-  <link rel="apple-touch-startup-image" href="splashscreens/splashscreen-1668x2224.png" media="(min-device-width: 834px) and (max-device-width: 1112px) and (orientation: portrait)">
-  <link rel="apple-touch-startup-image" href="splashscreens/splashscreen-1668x2388.png" media="(min-device-width: 834px) and (max-device-width: 1194px) and (orientation: portrait)">
-  <link rel="apple-touch-startup-image" href="splashscreens/splashscreen-2048x2732.png" media="(min-device-width: 1024px) and (max-device-width: 1366px) and (orientation: portrait)">
+  <link rel="apple-touch-startup-image" href="splashscreens/launch-640x1136.png" media="(device-width: 320px) and (device-height: 568px)">
+  <link rel="apple-touch-startup-image" href="splashscreens/launch-750x1334.png" media="(device-width: 375px) and (device-height: 667px)">
+  <link rel="apple-touch-startup-image" href="splashscreens/launch-1125x2436.png" media="(device-width: 375px) and (device-height: 812px)">
+  <link rel="apple-touch-startup-image" href="splashscreens/launch-828x1792.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)">
+  <link rel="apple-touch-startup-image" href="splashscreens/launch-1242x2688.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)">
+  <link rel="apple-touch-startup-image" href="splashscreens/launch-1536x2048.png" media="(min-device-width: 768px) and (max-device-width: 1024px) and (orientation: portrait)">
+  <link rel="apple-touch-startup-image" href="splashscreens/launch-1668x2224.png" media="(min-device-width: 834px) and (max-device-width: 1112px) and (orientation: portrait)">
+  <link rel="apple-touch-startup-image" href="splashscreens/launch-1668x2388.png" media="(min-device-width: 834px) and (max-device-width: 1194px) and (orientation: portrait)">
+  <link rel="apple-touch-startup-image" href="splashscreens/launch-2048x2732.png" media="(min-device-width: 1024px) and (max-device-width: 1366px) and (orientation: portrait)">
   <link rel="apple-touch-icon" href="icons/icon-180x180.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -95,28 +95,6 @@
     .clear-button:hover {
       background-color: #e4e4e4;
     }
-
-    .header span {
-      font-size: 15px;
-      font-weight: bold;
-    }
-    h3 {
-      font-size: 15px;
-    }
-    .header {
-      display: flex;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-    .header img {
-      width: 30px;
-      height: 30px;
-      margin-right: 10px;
-    }
-    .header span {
-      font-size: 14px;
-      font-weight: bold;
-    }
   </style>
   <!-- Include html5-qrcode library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script> 
@@ -124,19 +102,11 @@
 <body>
 
 <div class="container">
-  <!-- Add Header -->
-  <div class="header">
-    <img src="icons/icon-152x152.png" alt="App Icon" onclick="iconClick()">
-    <span>LnkdIn QR Tracker</span>
-  </div>
-
-<div class="container">
   <!-- Event Name Page -->
   <div id="event-name" class="hidden">
     <h2>Enter Event Name</h2>
     <input type="text" id="event" placeholder="Event Name">
     <button onclick="confirmEvent()">Confirm</button>
-    <button onclick="cancelEvent()">Cancel</button>
   </div>
 
   <!-- QR Scanner Page -->
@@ -170,13 +140,26 @@
 
   window.onload = function() {
     initializeDefaultEvent();
+    syncLocalStorage();
     displayUserList();
   }
 
-
-  function iconClick() {
-    hideAllSections();
-    displayUserList();
+  function syncLocalStorage() {
+    const pwaData = localStorage.getItem('pwaData');
+    if (pwaData) {
+      const browserData = JSON.parse(pwaData);
+      for (const key in browserData) {
+        localStorage.setItem(key, browserData[key]);
+      }
+    } else {
+      const browserData = {};
+      for (const key in localStorage) {
+        if (localStorage.hasOwnProperty(key)) {
+          browserData[key] = localStorage.getItem(key);
+        }
+      }
+      localStorage.setItem('pwaData', JSON.stringify(browserData));
+    }
   }
 
   function hideAllSections() {
@@ -197,14 +180,9 @@
     }
   }
 
-  function cancelEvent() {
-    hideAllSections();
-    displayUserList();
-  }
-
   function initializeDefaultEvent() {
     const userList = JSON.parse(localStorage.getItem('userList')) || [];
-    const defaultEventName = "For feedback, please contact:";
+    const defaultEventName = "Introduction and for feedback";
     const defaultLinkedInUrl = "https://www.linkedin.com/in/shubhamgupta08/";
 
     const defaultEventExists = userList.some(user => 
