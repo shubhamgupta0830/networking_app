@@ -1,6 +1,6 @@
 {
     "name": "LinkedIn QR Tracker",
-    "short_name": "QR Tracker",
+    "short_name": "LnkdIn QR Tracker",
     "description": "An app to scan LinkedIn QR codes and manage connections.",
     "start_url": "/index.html",
     "display": "standalone",
