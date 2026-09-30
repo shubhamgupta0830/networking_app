@@ -1,12 +1,28 @@
 {
-  "name": "networking-app",
+  "name": "wemethere",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "description": "Exchange LinkedIn profiles at events — scan a QR code, both sides get the connection, organised by event.",
+  "main": "server/index.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20"
   },
-  "keywords": [],
-  "author": "",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "postinstall": "node scripts/copy-vendor.js",
+    "icons": "python3 scripts/generate_icons.py"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.4.1",
+    "html5-qrcode": "^2.3.8",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.9.5",
+    "qrcode": "^1.5.4"
+  },
   "license": "ISC"
 }

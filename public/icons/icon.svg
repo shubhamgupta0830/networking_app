@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="WeMeThere">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3aa0ff"/>
+      <stop offset="1" stop-color="#0a52d4"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <g fill="none" stroke="#fff" stroke-width="18.8">
+    <rect x="93.9" y="93.9" width="95.5" height="95.5" rx="26.1"/>
+    <rect x="322.5" y="93.9" width="95.5" height="95.5" rx="26.1"/>
+    <rect x="93.9" y="322.5" width="95.5" height="95.5" rx="26.1"/>
+  </g>
+  <g fill="#fff">
+    <rect x="117.2" y="117.2" width="49" height="49" rx="11.4"/>
+    <rect x="345.8" y="117.2" width="49" height="49" rx="11.4"/>
+    <rect x="117.2" y="345.8" width="49" height="49" rx="11.4"/>
+    <rect x="340.1" y="349.5" width="85" height="17.1" rx="8.55"/>
+    <polygon points="443.1,358.05 413.7,337.8 413.7,378.3"/>
+    <rect x="315.6" y="374" width="84.9" height="17.1" rx="8.55"/>
+    <polygon points="297.6,382.55 327,362.25 327,402.85"/>
+  </g>
+</svg>

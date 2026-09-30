@@ -1,0 +1,28 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+#
+# Deploy with: Render Dashboard -> New -> Blueprint -> pick this repository.
+# Render reads this file and creates the service below.
+#
+# Two environment variables are involved:
+#   MONGODB_URI  marked `sync: false`, so it is NOT stored in this repository.
+#                Render prompts for it when the blueprint is first applied.
+#   JWT_SECRET   generated once by Render. Changing it later signs everybody
+#                out, so leave it alone after the first deploy.
+services:
+  - type: web
+    name: wemethere
+    runtime: node
+    plan: free
+    region: oregon
+    branch: wemethere-web
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
